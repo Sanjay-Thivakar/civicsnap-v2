@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Signup from "./auth/Signup";
 import Login from "./auth/Login";
 import UserDashboard from "./pages/UserDashboard";
@@ -10,9 +10,14 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        {/* 🔹 Redirect root to login */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
+        {/* 🔹 Public routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+
+        {/* 🔹 Protected routes */}
         <Route
           path="/user"
           element={
@@ -21,6 +26,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/admin"
           element={
@@ -38,6 +44,9 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* 🔹 Fallback */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );

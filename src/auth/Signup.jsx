@@ -1,57 +1,87 @@
 import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { useNavigate } from "react-router-dom";
+import { doc, setDoc } from "firebase/firestore";
+import { useNavigate, Link } from "react-router-dom";
 
-export default function Login() {
+export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    const res = await signInWithEmailAndPassword(auth, email, password);
-    const snap = await getDoc(doc(db, "users", res.user.uid));
-    const role = snap.data().role;
-    navigate(role === "admin" ? "/admin" : "/user");
+    setError("");
+
+    try {
+      const res = await createUserWithEmailAndPassword(auth, email, password);
+
+      // 👤 Create user document (NO admin role here)
+      await setDoc(doc(db, "users", res.user.uid), {
+        email,
+        role: "user",
+        createdAt: new Date(),
+      });
+
+      navigate("/login");
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
-    <form onSubmit={handleLogin} className="p-6 max-w-sm mx-auto">
-      <h2 className="text-xl mb-4">Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <form
+        onSubmit={handleSignup}
+        className="bg-white p-6 rounded shadow w-80"
+      >
+        <h2 className="text-xl font-semibold mb-4 text-center">Sign Up</h2>
 
-      <input
-        className="border p-2 w-full mb-2"
-        placeholder="Email"
-        onChange={(e) => setEmail(e.target.value)}
-      />
+        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
 
-      <div className="relative mb-2">
         <input
-          className="border p-2 w-full pr-16"
-          type={showPassword ? "text" : "password"}
-          placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
+          type="email"
+          placeholder="Email"
+          className="w-full border p-2 mb-3"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
         />
+
+        <div className="relative mb-2">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            className="w-full border p-2"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button
+            type="button"
+            className="absolute right-2 top-2 text-sm text-blue-600"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        </div>
+
         <button
-          type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-2 top-2 text-sm text-blue-600"
+          type="submit"
+          className="w-full bg-green-600 text-white py-2 rounded mt-3"
         >
-          {showPassword ? "Hide" : "Show"}
+          Create Account
         </button>
-      </div>
 
-      <button className="bg-black text-white px-4 py-2 w-full">Login</button>
-
-      <p className="text-sm text-center mt-4">
-        Don’t have an account?{" "}
-        <a href="/signup" className="text-blue-600 hover:underline font-medium">
-          Sign up
-        </a>
-      </p>
-    </form>
+        <p className="text-sm text-center mt-3">
+          Already have an account?{" "}
+          <Link to="/login" className="text-blue-600">
+            Login
+          </Link>
+        </p>
+      </form>
+    </div>
   );
 }
