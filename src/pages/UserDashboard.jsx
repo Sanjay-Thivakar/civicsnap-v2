@@ -12,6 +12,7 @@ import { db } from "../firebase";
 
 import IssueCard from "../components/IssueCard";
 import GeoTagSection from "../components/GeoTagSection";
+import LogoutButton from "../components/LogoutButton";
 
 export default function UserDashboard() {
   const navigate = useNavigate();
@@ -23,7 +24,6 @@ export default function UserDashboard() {
   useEffect(() => {
     async function fetchIssues() {
       try {
-        // 🔹 ALL unresolved issues
         const allQuery = query(
           collection(db, "issues"),
           where("status", "==", "unresolved"),
@@ -36,7 +36,6 @@ export default function UserDashboard() {
           ...doc.data(),
         }));
 
-        // 🔹 LATEST 4 unresolved issues
         const latestQuery = query(
           collection(db, "issues"),
           where("status", "==", "unresolved"),
@@ -64,7 +63,13 @@ export default function UserDashboard() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* 🔹 WELCOME CARD (UNCHANGED TEXT) */}
+      {/* 🔹 HEADER WITH LOGOUT */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">User Dashboard</h2>
+        <LogoutButton />
+      </div>
+
+      {/* 🔹 WELCOME CARD */}
       <div className="border rounded p-4 bg-white">
         <h2 className="font-semibold text-lg mb-2">Welcome to CivicSnap 👋</h2>
 

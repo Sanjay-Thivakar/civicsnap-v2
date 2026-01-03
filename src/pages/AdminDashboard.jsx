@@ -17,6 +17,7 @@ import IssueHeatMap from "../components/IssueHeatMap";
 import AdminAnalytics from "../components/AdminAnalytics";
 import ResolvedPerDayChart from "../components/ResolvedPerDayChart";
 import FadeIn from "../components/FadeIn";
+import LogoutButton from "../components/LogoutButton";
 
 export default function AdminDashboard() {
   const [unresolvedIssues, setUnresolvedIssues] = useState([]);
@@ -63,23 +64,30 @@ export default function AdminDashboard() {
     });
   };
 
+  // ✅ ONLY issues that have valid coordinates
+  const issuesWithLocation = unresolvedIssues.filter(
+    (i) => i.location?.lat && i.location?.lng
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 p-6 space-y-8">
-      {/* 🔹 ADMIN WELCOME */}
+      {/* 🔹 ADMIN HEADER */}
       <FadeIn>
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg p-5 shadow">
-          <h2 className="font-semibold text-xl mb-2">Admin Control Panel 🛠️</h2>
+          <div className="flex justify-between items-start">
+            <h2 className="font-semibold text-xl">Admin Control Panel 🛠️</h2>
+            <LogoutButton />
+          </div>
 
-          <p className="text-sm mb-3 opacity-90">
-            Monitor, verify, and resolve civic issues reported by users across
-            the city.
+          <p className="text-sm mt-2 opacity-90">
+            Monitor, verify, and resolve civic issues reported by users.
           </p>
 
-          <ul className="text-sm list-disc pl-5 space-y-1 opacity-90">
-            <li>Review unresolved issues submitted by citizens</li>
-            <li>Verify issues using images and geo-location</li>
-            <li>Resolve issues once action has been taken</li>
-            <li>Track resolved issue history for accountability</li>
+          <ul className="text-sm list-disc pl-5 mt-2 space-y-1 opacity-90">
+            <li>Review unresolved issues</li>
+            <li>Verify using images & geo-location</li>
+            <li>Resolve issues after action</li>
+            <li>Track accountability history</li>
           </ul>
         </div>
       </FadeIn>
@@ -92,7 +100,7 @@ export default function AdminDashboard() {
         />
       </FadeIn>
 
-      {/* 🔹 RESOLVED PER DAY CHART */}
+      {/* 🔹 RESOLVED PER DAY */}
       <FadeIn delay={0.15}>
         <ResolvedPerDayChart resolvedIssues={resolvedIssues} />
       </FadeIn>
@@ -100,9 +108,7 @@ export default function AdminDashboard() {
       {/* 🔹 UNRESOLVED ISSUES */}
       <FadeIn delay={0.2}>
         <div>
-          <h3 className="font-semibold text-lg mb-2 text-gray-800">
-            Unresolved Issues
-          </h3>
+          <h3 className="font-semibold text-lg mb-2">Unresolved Issues</h3>
 
           {unresolvedIssues.length === 0 ? (
             <p className="text-sm text-gray-500">No unresolved issues 🎉</p>
@@ -120,10 +126,10 @@ export default function AdminDashboard() {
         </div>
       </FadeIn>
 
-      {/* 🔹 RESOLVED ISSUES HISTORY */}
+      {/* 🔹 RESOLVED HISTORY */}
       <FadeIn delay={0.25}>
         <div>
-          <h3 className="font-semibold text-lg mb-2 text-gray-800">
+          <h3 className="font-semibold text-lg mb-2">
             Resolved Issues History
           </h3>
 
@@ -139,15 +145,13 @@ export default function AdminDashboard() {
         </div>
       </FadeIn>
 
-      {/* 🔹 MAP + HEATMAP */}
+      {/* 🔹 MAPS */}
       <FadeIn delay={0.3}>
-        <div className="bg-white rounded-lg shadow border p-4">
-          <h3 className="font-semibold mb-2 text-gray-800">
-            Issue Locations & Density
-          </h3>
+        <div className="bg-white rounded-lg shadow border p-4 space-y-4">
+          <h3 className="font-semibold">Issue Locations & Density</h3>
 
-          <GeoTagSection issues={unresolvedIssues} />
-          <IssueHeatMap issues={unresolvedIssues} />
+          {/* Markers map – always safe */}
+          <GeoTagSection issues={issuesWithLocation} />
         </div>
       </FadeIn>
     </div>

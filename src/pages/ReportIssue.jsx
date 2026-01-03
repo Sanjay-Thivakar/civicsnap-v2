@@ -1,11 +1,5 @@
 import { useState } from "react";
-import {
-  collection,
-  addDoc,
-  serverTimestamp,
-  updateDoc,
-  doc,
-} from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from "../firebase";
 
@@ -44,8 +38,8 @@ export default function ReportIssue() {
           await uploadBytes(imageRef, image);
           const imageUrl = await getDownloadURL(imageRef);
 
-          // 2️⃣ Save Issue FIRST (safe)
-          const docRef = await addDoc(collection(db, "issues"), {
+          // 2️⃣ Save Issue (AI will be handled by Cloud Function)
+          await addDoc(collection(db, "issues"), {
             userTitle,
             userDescription,
             category,
@@ -59,54 +53,6 @@ export default function ReportIssue() {
             },
             createdAt: serverTimestamp(),
           });
-
-          // 3️⃣ AI GENERATION (NON-BLOCKING)
-          try {
-            const aiResponse = await fetch(
-              "https://api.openai.com/v1/chat/completions",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `AIzaSyCHQDvls1uqsCrAkVwq0XGiarmME2JjQ-M`,
-                },
-                body: JSON.stringify({
-                  model: "gpt-3.5-turbo",
-                  messages: [
-                    {
-                      role: "system",
-                      content:
-                        "You generate issue titles and summaries for civic problems.",
-                    },
-                    {
-                      role: "user",
-                      content: `
-Generate a short professional title and a 2 sentence summary.
-
-Title: ${userTitle}
-Description: ${userDescription}
-Category: ${category}
-Severity: ${severity}
-
-Respond as JSON:
-{ "aiTitle": "", "aiSummary": "" }
-                    `,
-                    },
-                  ],
-                }),
-              }
-            );
-
-            const aiData = await aiResponse.json();
-            const parsed = JSON.parse(aiData.choices[0].message.content);
-
-            await updateDoc(doc(db, "issues", docRef.id), {
-              aiTitle: parsed.aiTitle,
-              aiSummary: parsed.aiSummary,
-            });
-          } catch (aiErr) {
-            console.warn("AI generation failed, continuing without it");
-          }
 
           alert("Issue reported successfully!");
           setUserTitle("");
